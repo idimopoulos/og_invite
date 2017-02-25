@@ -1,0 +1,8 @@
+name: Og invite
+type: module
+description: Provides invitation capabilities to og.
+core: 8.x
+package: Organic Groups
+
+dependencies:
+ - og

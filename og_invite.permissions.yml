@@ -1,0 +1,22 @@
+invite group member:
+  title: 'Invite group member'
+
+revoke group invitation:
+  title: 'Revoke group invitation'
+
+administer invite entities:
+  title: 'Administer Invite entities'
+  description: 'Allow to access the administration form to configure Invite entities.'
+  restrict access: true
+
+delete invite entities:
+  title: 'Delete Invite entities'
+
+edit invite entities:
+  title: 'Edit Invite entities'
+
+view active invite entities:
+  title: 'View active Invite entities'
+
+view inactive invite entities:
+  title: 'View inactive Invite entities'

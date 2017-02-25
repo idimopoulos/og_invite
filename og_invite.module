@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Contains og_invite.module..
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function og_invite_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the og_invite module.
+    case 'help.page.og_invite':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provides invitation capabilities to og.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
