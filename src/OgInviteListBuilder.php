@@ -14,6 +14,7 @@ use Drupal\Core\Url;
  */
 class OgInviteListBuilder extends EntityListBuilder {
   use LinkGeneratorTrait;
+
   /**
    * {@inheritdoc}
    */

@@ -13,6 +13,7 @@ use Drupal\Core\Access\AccessResult;
  * @see \Drupal\og_invite\Entity\OgInvite.
  */
 class OgInviteAccessControlHandler extends EntityAccessControlHandler {
+
   /**
    * {@inheritdoc}
    */

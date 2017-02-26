@@ -7,10 +7,6 @@
  * Page callback for Invite entities.
  */
 
-use Drupal\Core\Render\Element;
-use Drupal\Core\Link;
-use Drupal\Core\Url;
-
 /**
  * Prepares variables for Invite templates.
  *
@@ -23,10 +19,9 @@ use Drupal\Core\Url;
  */
 function template_preprocess_og_invite(array &$variables) {
   // Fetch OgInvite Entity Object.
-  // $og_invite = $variables['elements']['#og_invite'];
-
+  // $og_invite = $variables['elements']['#og_invite'];.
   // Helpful $content variable for templates.
   // foreach (Element::children($variables['elements']) as $key) {
   // $variables['content'][$key] = $variables['elements'][$key];
-  // }
+  // }.
 }

@@ -36,7 +36,6 @@ class OgInviteSettingsForm extends FormBase {
     // Empty implementation of the abstract submit class.
   }
 
-
   /**
    * Defines the settings form for Invite entities.
    *

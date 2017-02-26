@@ -2,11 +2,13 @@
 
 namespace Drupal\og_invite\Entity;
 
+use Drupal\Component\Utility\Random;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\og\OgMembershipInterface;
 use Drupal\og_invite\OgInviteInterface;
 use Drupal\user\UserInterface;
 
@@ -54,6 +56,7 @@ use Drupal\user\UserInterface;
  * )
  */
 class OgInvite extends ContentEntityBase implements OgInviteInterface {
+
   use EntityChangedTrait;
 
   /**
@@ -64,6 +67,13 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
     $values += array(
       'uid' => \Drupal::currentUser()->id(),
     );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function preSave(EntityStorageInterface $storage) {
+    parent::preSave($storage);
   }
 
   /**
@@ -94,13 +104,14 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
       ->setTranslatable(FALSE);
 
     $fields['invite_hash'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Name'))
+      ->setLabel(t('Invite hash'))
       ->setDescription(t('The invite_hash of the Invite entity.'))
+      ->addConstraint('UniqueField')
       ->setSettings(array(
         'max_length' => 50,
         'text_processing' => 0,
       ))
-      ->setDefaultValue('');
+      ->setDefaultValueCallback('\Drupal\og_invite\Entity\OgInvite::getInviteHash()');
 
     $fields['status'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Active status'))
@@ -124,8 +135,14 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
       ->setLabel(t('Decision date'))
       ->setDescription(t('The time of the decision.'));
 
-
     return $fields;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getInviteHash() {
+    return $this->getName();
   }
 
   /**
@@ -133,6 +150,14 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
    */
   public function getName() {
     return $this->get('invite_hash')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setInviteHash($invite_hash) {
+    $this->setName($invite_hash);
+    return $this;
   }
 
   /**
@@ -191,6 +216,36 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
   /**
    * {@inheritdoc}
    */
+  public function getCreatedBy() {
+    return $this->get('created_by')->entity;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCreatedById() {
+    return $this->get('created_by')->target_id;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setCreatedById($uid) {
+    $this->set('created_by', $uid);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setCreatedBy(UserInterface $account) {
+    $this->set('created_by', $account->id());
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function isActive() {
     return (bool) $this->getEntityKey('status');
   }
@@ -231,6 +286,47 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
   public function setDecision($decision) {
     $this->set('decision', $decision);
     return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMembership() {
+    return $this->get('mid')->entity;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getMembershipId() {
+    return $this->get('mid')->target_id;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setMembershipId($mid) {
+    $this->set('mid', $mid);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setMembership(OgMembershipInterface $membership) {
+    $this->set('mid', $membership->id());
+    return $this;
+  }
+
+  /**
+   * Generates a random string.
+   *
+   * @return string
+   *    The generated sequence.
+   */
+  public static function generateRandomSequence() {
+    $random = new Random();
+    return $random->string(10);
   }
 
 }
