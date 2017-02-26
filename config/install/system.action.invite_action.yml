@@ -1,0 +1,12 @@
+id: invite_action
+label: 'Invite member(s)'
+status: true
+langcode: en
+type: user
+plugin: og_invite_action
+dependencies:
+  module:
+    - user
+    - og
+    - og_invite
+
