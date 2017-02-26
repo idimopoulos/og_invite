@@ -19,3 +19,8 @@ entity.og_invite.delete_form:
   title: Delete
   weight: 10
 
+og.og_admin_routes.members.invite:
+  route_name:  entity.node.og_admin_routes.invite
+  base_route:  entity.node.og_admin_routes.members
+  title: Invite
+

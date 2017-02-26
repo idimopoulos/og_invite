@@ -1,0 +1,13 @@
+og_invite.invite.create:
+  path: 'group/{entity_type_id}/{entity_id}/admin/members/invite/add/{user}'
+  defaults:
+    _controller: '\Drupal\og_invite\Controller\OgInvite::createInvite'
+    _title: 'Create invitation'
+  requirements:
+    _custom_access: '\Drupal\og_invite\Controller\OgInvite::createInviteAccess'
+  options:
+    parameters:
+      entity_id:
+        type: entity:{entity_type_id}
+      user:
+        type: entity:user

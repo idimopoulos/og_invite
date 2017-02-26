@@ -1,5 +1,5 @@
-entity.og_invite.add_form:
-  route_name: entity.og_invite.add_form
-  title: 'Add Invite'
+og_invite.node.invite:
+  route_name: entity.node.og_admin_routes.invite
+  title: 'Invite members'
   appears_on:
-    - entity.og_invite.collection
+    - entity.node.og_admin_routes.members

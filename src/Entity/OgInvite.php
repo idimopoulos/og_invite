@@ -111,7 +111,7 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
         'max_length' => 50,
         'text_processing' => 0,
       ))
-      ->setDefaultValueCallback('\Drupal\og_invite\Entity\OgInvite::getInviteHash()');
+      ->setDefaultValueCallback('Drupal\og_invite\Entity\OgInvite::generateRandomSequence');
 
     $fields['status'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Active status'))
@@ -326,7 +326,7 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
    */
   public static function generateRandomSequence() {
     $random = new Random();
-    return $random->string(10);
+    return [$random->string(10)];
   }
 
 }
