@@ -8,6 +8,7 @@ use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Url;
 use Drupal\og\OgMembershipInterface;
 use Drupal\og_invite\OgInviteInterface;
 use Drupal\user\UserInterface;
@@ -143,6 +144,33 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
    */
   public function getInviteHash() {
     return $this->getName();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getInviteAcceptUri() {
+    return Url::fromRoute('og_invite.invite.accept', [
+      'invite_hash' => $this->getInviteHash(),
+    ]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getInviteRejectUri() {
+    return Url::fromRoute('og_invite.invite.reject', [
+      'invite_hash' => $this->getInviteHash(),
+    ]);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getInviteRevokeUri() {
+    return Url::fromRoute('og_invite.invite.revoke', [
+      'invite_hash' => $this->getInviteHash(),
+    ]);
   }
 
   /**

@@ -11,3 +11,39 @@ og_invite.invite.create:
         type: entity:{entity_type_id}
       user:
         type: entity:user
+
+og_invite.invite.accept:
+  path: 'invite/{invite_hash}/accept'
+  defaults:
+    _controller: '\Drupal\og_invite\Controller\OgInvite::acceptInvite'
+    _title: 'Accept invitation'
+  requirements:
+    _custom_access: '\Drupal\og_invite\Controller\OgInvite::decisionInviteAccess'
+  options:
+    parameters:
+      invite:
+        type: entity:invite
+
+og_invite.invite.reject:
+  path: 'invite/{invite_hash}/reject'
+  defaults:
+    _controller: '\Drupal\og_invite\Controller\OgInvite::rejectInvite'
+    _title: 'Accept invitation'
+  requirements:
+    _custom_access: '\Drupal\og_invite\Controller\OgInvite::decisionInviteAccess'
+  options:
+    parameters:
+      invite:
+        type: entity:invite
+
+og_invite.invite.revoke:
+  path: 'invite/{invite_hash}/revoke'
+  defaults:
+    _controller: '\Drupal\og_invite\Controller\OgInvite::revokeInvite'
+    _title: 'Accept invitation'
+  requirements:
+    _custom_access: '\Drupal\og_invite\Controller\OgInvite::revokeInviteAccess'
+  options:
+    parameters:
+      invite:
+        type: entity:invite

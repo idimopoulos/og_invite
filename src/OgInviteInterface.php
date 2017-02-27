@@ -70,6 +70,30 @@ interface OgInviteInterface extends ContentEntityInterface, EntityChangedInterfa
   public function getInviteHash();
 
   /**
+   * Returns a the url of the acceptance link.
+   *
+   * @return \Drupal\Core\Url
+   *   The url of the accept link.
+   */
+  public function getInviteAcceptUri();
+
+  /**
+   * Returns a the url of the rejection link.
+   *
+   * @return \Drupal\Core\Url
+   *   The url of the reject link.
+   */
+  public function getInviteRejectUri();
+
+  /**
+   * Returns a the url of the revocation link.
+   *
+   * @return \Drupal\Core\Url
+   *   The url of the revoke link.
+   */
+  public function getInviteRevokeUri();
+
+  /**
    * Sets the Invite hash.
    *
    * @param string $hash

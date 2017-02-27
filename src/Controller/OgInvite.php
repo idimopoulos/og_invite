@@ -16,6 +16,7 @@ use Drupal\og\Og;
 use Drupal\og\OgAccessInterface;
 use Drupal\og\OgMembershipInterface;
 use Drupal\og_invite\InviteManagerInterface;
+use Drupal\og_invite\OgInviteInterface;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -32,6 +33,13 @@ class OgInvite extends ControllerBase {
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
+
+  /**
+   * The og invite storgae.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $ogInviteStorage;
 
   /**
    * Drupal\og\MembershipManager definition.
@@ -85,6 +93,7 @@ class OgInvite extends ControllerBase {
     $this->ogAccess = $og_access;
     $this->inviteManager = $invite_manager;
     $this->currentUser = $current_user;
+    $this->ogInviteStorage = $this->entityTypeManager->getStorage('og_invite');
   }
 
   /**
@@ -221,8 +230,8 @@ class OgInvite extends ControllerBase {
    * @param \Drupal\user\UserInterface $user
    *    The user object associated with the Invite entity.
    *
-   * @return array
-   *    A return array, whether to be rendered or to be processed.
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *    A redirect to the invite route.
    */
   public function createInvite($entity_type_id, EntityInterface $entity_id, UserInterface $user) {
     $params = [
@@ -287,6 +296,180 @@ class OgInvite extends ControllerBase {
     }
 
     return AccessResult::allowedIf($this->ogAccess->userAccess($entity_id, 'invite group member', $created_by)->isAllowed());
+  }
+
+  /**
+   * Accepts an invitation.
+   *
+   * @param string $invite_hash
+   *    The invite hash.
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *    A redirect to the invite route.
+   */
+  public function acceptInvite($invite_hash) {
+    $invite = $this->getInviteByHash($invite_hash);
+    $membership = $invite->getMembership();
+    $membership->setState(OgMembershipInterface::STATE_ACTIVE);
+    $membership->save();
+
+    $invite->setDecision(OgInviteInterface::DECISION_ACCEPT);
+    $invite->getDecisionDate(\Drupal::time()->getRequestTime());
+    // The invite is not active anymore.
+    $invite->setActive(OgInviteInterface::NOT_ACTIVE);
+    $invite->save();
+
+    $group = $membership->getGroup();
+    $route_parameters = $group->toUrl()->getRouteParameters();
+    return $this->redirect("entity.{$group->getEntityTypeId()}.canonical", $route_parameters);
+  }
+
+  /**
+   * Rejects an invitation.
+   *
+   * @param string $invite_hash
+   *    The invite hash.
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *    A redirect to the invite route.
+   */
+  public function rejectInvite($invite_hash) {
+    $invite = $this->getInviteByHash($invite_hash);
+    $membership = $invite->getMembership();
+    // @todo: Global settings should be available for whether to delete or block
+    // rejected memberships. Maybe an OgInviteType would be nice so that
+    // settings are saved per entity.
+    $membership->setState(OgMembershipInterface::STATE_BLOCKED);
+    $membership->save();
+
+    $invite->setDecision(OgInviteInterface::DECISION_REJECT);
+    $invite->getDecisionDate(\Drupal::time()->getRequestTime());
+    // The invite is not active anymore.
+    $invite->setActive(OgInviteInterface::NOT_ACTIVE);
+    $invite->save();
+
+    $group = $membership->getGroup();
+    $route_parameters = $group->toUrl()->getRouteParameters();
+    return $this->redirect("entity.{$group->getEntityTypeId()}.canonical", $route_parameters);
+  }
+
+  /**
+   * Custom check access for accepting/rejecting an Invite.
+   *
+   * Mainly, only the membership user is able to accept or reject the
+   * invitation.
+   *
+   * @param string $invite_hash
+   *    The invite hash.
+   *
+   * @return AccessResult
+   *    The result of the access check.
+   */
+  public function decisionInviteAccess($invite_hash) {
+    if ($this->currentUser->isAnonymous()) {
+      return AccessResult::forbidden();
+    }
+
+    $invite = $this->getInviteByHash($invite_hash);
+    if (empty($invite)) {
+      return AccessResult::forbidden();
+    }
+
+    if (!($membership = $invite->getMembership())) {
+      return AccessResult::forbidden();
+    }
+
+    if ($membership->getUser()->id() !== $this->currentUser()->id()) {
+      return AccessResult::forbidden();
+    }
+
+    if ($membership->getState() !== OgMembershipInterface::STATE_PENDING || !empty($invite->getDecision())) {
+      return AccessResult::forbidden();
+    }
+
+    return AccessResult::allowed();
+  }
+
+  /**
+   * Revokes an invitation.
+   *
+   * @param string $invite_hash
+   *    The invite hash.
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *    A redirect to the invite route.
+   */
+  public function revokeInvite($invite_hash) {
+    $invite = $this->getInviteByHash($invite_hash);
+    $membership = $invite->getMembership();
+    // @todo: Global settings should be available for whether to delete or block
+    // revoked invitations. Maybe an OgInviteType would be nice so that
+    // settings are saved per entity.
+    $membership->setState(OgMembershipInterface::STATE_BLOCKED);
+    $membership->save();
+
+    // The invite is not active anymore.
+    $invite->setActive(OgInviteInterface::NOT_ACTIVE);
+    $invite->save();
+
+    $group = $membership->getGroup();
+    $user = $this->entityTypeManager->getStorage('user')->load($this->currentUser()->id());
+    $route_name = $user->toUrl()->getRouteName();
+    $route_parameters = $group->toUrl()->getRouteParameters();
+    return $this->redirect($route_name, $route_parameters);
+  }
+
+  /**
+   * Custom check access for revoking an Invite.
+   *
+   * @param string $invite_hash
+   *    The invite hash.
+   *
+   * @return AccessResult
+   *    The result of the access check.
+   */
+  public function revokeInviteAccess($invite_hash) {
+    if ($this->currentUser->isAnonymous()) {
+      return AccessResult::forbidden();
+    }
+
+    $invite = $this->getInviteByHash($invite_hash);
+    if (empty($invite)) {
+      return AccessResult::forbidden();
+    }
+
+    if (!($membership = $invite->getMembership())) {
+      return AccessResult::forbidden();
+    }
+
+    if ($membership->getState() !== OgMembershipInterface::STATE_PENDING || !empty($invite->getDecision())) {
+      return AccessResult::forbidden();
+    }
+
+    $created_by = $this->entityTypeManager->getStorage('user')->load($this->currentUser()->id());
+    if (!($user_membership = $this->ogMembershipManager->getMembership($membership->getGroup(), $created_by))) {
+      return AccessResult::forbidden();
+    }
+
+    return AccessResult::allowedIf($this->ogAccess->userAccess($membership->getGroup(), 'revoke group invitation', $created_by)->isAllowed());
+  }
+
+  /**
+   * Returns the invitation given the hash.
+   *
+   * @param string $invite_hash
+   *    The invite hash.
+   *
+   * @return \Drupal\og_invite\OgInviteInterface|null
+   *    The loaded invite or null if no invite is found.
+   */
+  protected function getInviteByHash($invite_hash) {
+    $this->ogInviteStorage = $this->entityTypeManager->getStorage('og_invite');
+    $invites = $this->ogInviteStorage->loadByProperties([
+      'invite_hash' => $invite_hash,
+    ]);
+
+    return empty($invites) ? NULL : reset($invites);
   }
 
 }
