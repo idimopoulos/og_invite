@@ -86,10 +86,11 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
       ->setDescription(t('The ID of the Invite entity.'))
       ->setReadOnly(TRUE);
 
-    $fields['mid'] = BaseFieldDefinition::create('integer')
-      ->setLabel(t('Membership ID'))
-      ->setDescription(t('The ID of the membership entity related to the invitation.'))
-      ->setReadOnly(TRUE);
+    $fields['mid'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Membership'))
+      ->setDescription(t('The membership entity related to the invitation.'))
+      ->setSetting('target_type', 'og_membership_type')
+      ->setSetting('handler', 'default');
 
     $fields['uuid'] = BaseFieldDefinition::create('uuid')
       ->setLabel(t('UUID'))
