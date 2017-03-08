@@ -1,0 +1,16 @@
+{
+    "name": "drupal/og_invite",
+    "description": "Api to allow invite og members.",
+    "type": "drupal-module",
+    "require-dev": {
+        "drupal/coder": "~8.2"
+    },
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "idimopoulos",
+            "email": "idimopoulos@hotmail.com"
+        }
+    ],
+    "require": {}
+}
