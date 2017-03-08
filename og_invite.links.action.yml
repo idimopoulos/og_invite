@@ -1,5 +1,0 @@
-og_invite.node.invite:
-  route_name: entity.node.og_admin_routes.invite
-  title: 'Invite members'
-  appears_on:
-    - entity.node.og_admin_routes.members

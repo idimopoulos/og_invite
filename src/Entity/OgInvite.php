@@ -22,21 +22,11 @@ use Drupal\user\UserInterface;
  *   id = "og_invite",
  *   label = @Translation("Invite"),
  *   handlers = {
- *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "list_builder" = "Drupal\og_invite\OgInviteListBuilder",
  *     "views_data" = "Drupal\og_invite\Entity\OgInviteViewsData",
- *
- *     "form" = {
- *       "default" = "Drupal\og_invite\Form\OgInviteForm",
- *       "add" = "Drupal\og_invite\Form\OgInviteForm",
- *       "edit" = "Drupal\og_invite\Form\OgInviteForm",
- *       "delete" = "Drupal\og_invite\Form\OgInviteDeleteForm",
- *     },
  *     "access" = "Drupal\og_invite\OgInviteAccessControlHandler",
- *     "route_provider" = {
- *       "html" = "Drupal\og_invite\OgInviteHtmlRouteProvider",
- *     },
  *   },
+ *   fieldable = TRUE,
+ *   bundle_entity_type = "og_invite_type",
  *   base_table = "og_invite",
  *   admin_permission = "administer invite entities",
  *   entity_keys = {
@@ -46,14 +36,9 @@ use Drupal\user\UserInterface;
  *     "uuid" = "uuid",
  *     "uid" = "created_by",
  *   },
- *   links = {
- *     "canonical" = "/admin/config/group/invite/og_invite/{og_invite}",
- *     "add-form" = "/admin/config/group/invite/og_invite/add",
- *     "edit-form" = "/admin/config/group/invite/og_invite/{og_invite}/edit",
- *     "delete-form" = "/admin/config/group/invite/og_invite/{og_invite}/delete",
- *     "collection" = "/admin/config/group/invite/og_invite",
- *   },
- *   field_ui_base_route = "og_invite.settings"
+ *   bundle_keys = {
+ *     "bundle" = "type",
+ *   }
  * )
  */
 class OgInvite extends ContentEntityBase implements OgInviteInterface {

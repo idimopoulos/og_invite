@@ -1,0 +1,10 @@
+og_invite.og_invite_type.*:
+  type: config_entity
+  label: 'Og invite type config'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
