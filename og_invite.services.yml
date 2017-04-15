@@ -2,9 +2,4 @@ services:
   og_invite.manager:
     class: Drupal\og_invite\InviteManager
     arguments: ["@current_user", "@og.group_type_manager", "@og.membership_manager"]
-  og_invite.og_admin_route_subscriber:
-    class: Drupal\og_invite\EventSubscriber\OgAdminEventSubscriber
-    arguments: ['@og.permission_manager', '@entity_type.manager', '@entity_type.bundle.info']
-    tags:
-      - { name: event_subscriber }
 

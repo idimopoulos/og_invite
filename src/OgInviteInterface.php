@@ -4,6 +4,7 @@ namespace Drupal\og_invite;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityChangedInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\og\OgMembershipInterface;
 use Drupal\user\UserInterface;
 use Drupal\user\EntityOwnerInterface;
@@ -18,30 +19,44 @@ interface OgInviteInterface extends ContentEntityInterface, EntityChangedInterfa
   /**
    * Represents that the invitation is active.
    *
-   * @var int
+   * @var string
    */
-  public const ACTIVE = 1;
+  public const ACTIVE = 'active';
 
   /**
    * Represents that the invitation is not active.
    *
-   * @var int
+   * @var string
    */
-  public const NOT_ACTIVE = 0;
+  public const NOT_ACTIVE = 'not active';
+
+  /**
+   * Represents that the invitation is not active.
+   *
+   * @var string
+   */
+  public const REVOKED = 'revoked';
 
   /**
    * Represents that the invitation is accepted.
    *
-   * @var int
+   * @var string
    */
-  public const DECISION_ACCEPT = 1;
+  public const DECISION_ACCEPT = 'accepted';
 
   /**
    * Represents that the invitation is rejected.
    *
-   * @var int
+   * @var string
    */
-  public const DECISION_REJECT = 0;
+  public const DECISION_REJECT = 'rejected';
+
+  /**
+   * Represents that the invitation is pending.
+   *
+   * @var string
+   */
+  public const DECISION_PENDING = 'pending';
 
   /**
    * Gets the Invite hash.
@@ -140,6 +155,24 @@ interface OgInviteInterface extends ContentEntityInterface, EntityChangedInterfa
   public function setCreatedById($uid);
 
   /**
+   * Returns the user related with the membership.
+   *
+   * It is saved in the og invite entity for convenience.
+   *
+   * @return \Drupal\user\Entity\User
+   *    The user object.
+   */
+  public function getMembershipUser();
+
+  /**
+   * Returns the user Id of the user related with the membership.
+   *
+   * @return int
+   *    The user id.
+   */
+  public function getMembershipUserId();
+
+  /**
    * Gets the Invite creation timestamp.
    *
    * @return int
@@ -169,14 +202,22 @@ interface OgInviteInterface extends ContentEntityInterface, EntityChangedInterfa
   public function isActive();
 
   /**
-   * Sets the published status of a Invite.
+   * Sets the status of an Invite.
    *
-   * @param bool $published
-   *   TRUE to set this Invite to published, FALSE to set it to unpublished.
+   * @param string $status
+   *   The status of the invite.
    *
    * @return $this
    */
-  public function setActive($published);
+  public function setStatus($status);
+
+  /**
+   * Gets the status of an Invite.
+   *
+   * @return string $published
+   *   TRUE to set this Invite to published, FALSE to set it to unpublished.
+   */
+  public function getStatus();
 
   /**
    * Returns the Invite decision date.
@@ -237,6 +278,41 @@ interface OgInviteInterface extends ContentEntityInterface, EntityChangedInterfa
    * @return $this
    */
   public function setMembershipId($mid);
+
+  /**
+   * Sets the group associated with the og_invite.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $group
+   *   The entity object.
+   *
+   * @return \Drupal\og\OgMembershipInterface
+   *   The updated OG Invite object.
+   */
+  public function setGroup(EntityInterface $group);
+
+  /**
+   * Gets the group associated with the invite.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   The group object which the invite reference to.
+   */
+  public function getGroup();
+
+  /**
+   * Gets the group entity type.
+   *
+   * @return string
+   *   The entity type.
+   */
+  public function getGroupEntityType();
+
+  /**
+   * Gets the group entity ID.
+   *
+   * @return string
+   *   The entity identifier.
+   */
+  public function getGroupId();
 
   /**
    * Sets the membership associated with the Invite.

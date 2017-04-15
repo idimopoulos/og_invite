@@ -316,7 +316,7 @@ class OgInvite extends ControllerBase {
     $invite->setDecision(OgInviteInterface::DECISION_ACCEPT);
     $invite->getDecisionDate(\Drupal::time()->getRequestTime());
     // The invite is not active anymore.
-    $invite->setActive(OgInviteInterface::NOT_ACTIVE);
+    $invite->setStatus(OgInviteInterface::NOT_ACTIVE);
     $invite->save();
 
     $group = $membership->getGroup();
@@ -345,7 +345,7 @@ class OgInvite extends ControllerBase {
     $invite->setDecision(OgInviteInterface::DECISION_REJECT);
     $invite->getDecisionDate(\Drupal::time()->getRequestTime());
     // The invite is not active anymore.
-    $invite->setActive(OgInviteInterface::NOT_ACTIVE);
+    $invite->setStatus(OgInviteInterface::NOT_ACTIVE);
     $invite->save();
 
     $group = $membership->getGroup();
@@ -383,7 +383,7 @@ class OgInvite extends ControllerBase {
       return AccessResult::forbidden();
     }
 
-    if ($membership->getState() !== OgMembershipInterface::STATE_PENDING || !empty($invite->getDecision())) {
+    if ($membership->getState() !== OgMembershipInterface::STATE_PENDING || $invite->getDecision() !== OgInviteInterface::DECISION_PENDING) {
       return AccessResult::forbidden();
     }
 
@@ -409,7 +409,7 @@ class OgInvite extends ControllerBase {
     $membership->save();
 
     // The invite is not active anymore.
-    $invite->setActive(OgInviteInterface::NOT_ACTIVE);
+    $invite->setStatus(OgInviteInterface::NOT_ACTIVE);
     $invite->save();
 
     $group = $membership->getGroup();

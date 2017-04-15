@@ -2,9 +2,9 @@
 
 namespace Drupal\og_invite\Entity;
 
-use Drupal\Component\Utility\Random;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -33,6 +33,7 @@ use Drupal\user\UserInterface;
  *     "id" = "id",
  *     "label" = "invite_hash",
  *     "mid" = "mid",
+ *     "nid" = "nid",
  *     "uuid" = "uuid",
  *     "uid" = "created_by",
  *   },
@@ -74,8 +75,24 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
     $fields['mid'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Membership'))
       ->setDescription(t('The membership entity related to the invitation.'))
-      ->setSetting('target_type', 'og_membership_type')
+      ->setSetting('target_type', 'og_membership')
       ->setSetting('handler', 'default');
+
+    $fields['entity_type'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Group entity type'))
+      ->setDescription(t('The entity type of the group.'));
+
+    $fields['entity_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Group entity id'))
+      ->setDescription(t("The entity ID of the group."));
+
+    $fields['uid'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('User'))
+      ->setDescription(t('The user ID related to the membership.'))
+      ->setRevisionable(TRUE)
+      ->setSetting('target_type', 'user')
+      ->setSetting('handler', 'default')
+      ->setTranslatable(FALSE);
 
     $fields['uuid'] = BaseFieldDefinition::create('uuid')
       ->setLabel(t('UUID'))
@@ -100,10 +117,10 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
       ))
       ->setDefaultValueCallback('Drupal\og_invite\Entity\OgInvite::generateRandomSequence');
 
-    $fields['status'] = BaseFieldDefinition::create('boolean')
+    $fields['status'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Active status'))
       ->setDescription(t('A boolean indicating whether the Invite is active or not.'))
-      ->setDefaultValue(TRUE);
+      ->setDefaultValue(OgInviteInterface::ACTIVE);
 
     $fields['created'] = BaseFieldDefinition::create('created')
       ->setLabel(t('Created'))
@@ -113,10 +130,11 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
       ->setLabel(t('Changed'))
       ->setDescription(t('The time that the entity was last edited.'));
 
-    $fields['decision'] = BaseFieldDefinition::create('boolean')
+    $fields['decision'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Decision'))
       ->setDescription(t('A boolean indicating whether the invitation has been accepted or not.'))
-      ->setDefaultValue(TRUE);
+      ->setRequired(FALSE)
+      ->setDefaultValue(OgInviteInterface::DECISION_PENDING);
 
     $fields['decision_date'] = BaseFieldDefinition::create('changed')
       ->setLabel(t('Decision date'))
@@ -201,21 +219,21 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
    * {@inheritdoc}
    */
   public function getOwner() {
-    return $this->get('created_by')->entity;
+    return $this->get('uid')->entity;
   }
 
   /**
    * {@inheritdoc}
    */
   public function getOwnerId() {
-    return $this->get('created_by')->target_id;
+    return $this->get('uid')->target_id;
   }
 
   /**
    * {@inheritdoc}
    */
   public function setOwnerId($uid) {
-    $this->set('created_by', $uid);
+    $this->set('uid', $uid);
     return $this;
   }
 
@@ -223,7 +241,7 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
    * {@inheritdoc}
    */
   public function setOwner(UserInterface $account) {
-    $this->set('created_by', $account->id());
+    $this->set('uid', $account->id());
     return $this;
   }
 
@@ -256,19 +274,41 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
     $this->set('created_by', $account->id());
     return $this;
   }
-
+  
   /**
    * {@inheritdoc}
    */
-  public function isActive() {
-    return (bool) $this->getEntityKey('status');
+  public function getMembershipUser() {
+    return $this->get('uid')->entity;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function setActive($published) {
-    $this->set('status', $published ? self::ACTIVE : self::NOT_ACTIVE);
+  public function getMembershipUserId() {
+    return $this->get('uid')->target_id;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function isActive() {
+    return $this->get('status')->value == OgInviteInterface::ACTIVE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setStatus($status) {
+    $this->set('status', $status);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getStatus() {
+    $this->get('status')->value;
     return $this;
   }
 
@@ -333,14 +373,46 @@ class OgInvite extends ContentEntityBase implements OgInviteInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function setGroup(EntityInterface $group) {
+    $this->set('entity_type', $group->getEntityTypeId());
+    $this->set('entity_id', $group->id());
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getGroupEntityType() {
+    return $this->get('entity_type')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getGroupId() {
+    return $this->get('entity_id')->value;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getGroup() {
+    $entity_type = $this->get('entity_type')->value;
+    $entity_id = $this->get('entity_id')->value;
+    return \Drupal::entityTypeManager()->getStorage($entity_type)->load($entity_id);
+  }
+
+  /**
    * Generates a random string.
    *
    * @return string
    *    The generated sequence.
    */
   public static function generateRandomSequence() {
-    $random = new Random();
-    return [$random->string(10)];
+    $random = user_password();
+    return [$random];
   }
 
 }
